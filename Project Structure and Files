@@ -1,0 +1,76 @@
+#Project Structure and Files
+
+
+job-tracker/
+│
+├── backend/
+│   ├── config/
+│   │   ├── database.js
+│   │   └── config.js
+│   ├── controllers/
+│   │   ├── authController.js
+│   │   ├── jobController.js
+│   │   └── userController.js
+│   ├── middleware/
+│   │   ├── auth.js
+│   │   ├── errorHandler.js
+│   │   └── validation.js
+│   ├── models/
+│   │   ├── User.js
+│   │   ├── Job.js
+│   │   ├── Company.js
+│   │   └── Interview.js
+│   ├── routes/
+│   │   ├── authRoutes.js
+│   │   ├── jobRoutes.js
+│   │   └── userRoutes.js
+│   ├── utils/
+│   │   ├── logger.js
+│   │   └── helpers.js
+│   ├── app.js
+│   ├── server.js
+│   └── package.json
+│
+├── frontend/
+│   ├── public/
+│   │   ├── index.html
+│   │   ├── favicon.ico
+│   │   └── assets/
+│   │       └── images/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── auth/
+│   │   │   │   ├── Login.js
+│   │   │   │   └── Register.js
+│   │   │   ├── jobs/
+│   │   │   │   ├── JobCard.js
+│   │   │   │   ├── JobForm.js
+│   │   │   │   └── JobList.js
+│   │   │   ├── common/
+│   │   │   │   ├── Header.js
+│   │   │   │   ├── Footer.js
+│   │   │   │   └── Modal.js
+│   │   │   └── layout/
+│   │   │       └── Dashboard.js
+│   │   ├── styles/
+│   │   │   ├── components/
+│   │   │   │   ├── auth.css
+│   │   │   │   ├── jobs.css
+│   │   │   │   └── common.css
+│   │   │   ├── layout.css
+│   │   │   └── main.css
+│   │   ├── services/
+│   │   │   ├── api.js
+│   │   │   ├── auth.service.js
+│   │   │   └── job.service.js
+│   │   ├── utils/
+│   │   │   ├── constants.js
+│   │   │   └── helpers.js
+│   │   ├── App.js
+│   │   └── index.js
+│   ├── package.json
+│   └── README.md
+│
+├── .gitignore
+├── README.md
+└── docker-compose.yml

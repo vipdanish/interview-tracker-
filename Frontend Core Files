@@ -1,0 +1,160 @@
+// frontend/src/components/auth/Login.js
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import authService from '../../services/auth.service';
+import '../../styles/components/auth.css';
+
+const Login = () => {
+  const [credentials, setCredentials] = useState({ email: '', password: '' });
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await authService.login(credentials);
+      localStorage.setItem('token', response.token);
+      navigate('/dashboard');
+    } catch (error) {
+      setError(error.response?.data?.message || 'Login failed');
+    }
+  };
+
+  return (
+    <div className="login-container">
+      <form className="login-form" onSubmit={handleSubmit}>
+        <h2>Login to Job Tracker</h2>
+        {error && <div className="error-message">{error}</div>}
+        <div className="form-group">
+          <label htmlFor="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            value={credentials.email}
+            onChange={(e) => setCredentials({...credentials, email: e.target.value})}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            value={credentials.password}
+            onChange={(e) => setCredentials({...credentials, password: e.target.value})}
+            required
+          />
+        </div>
+        <button type="submit" className="login-btn">Login</button>
+      </form>
+    </div>
+  );
+};
+
+export default Login;
+
+// frontend/src/components/jobs/JobList.js
+import React, { useState, useEffect } from 'react';
+import JobCard from './JobCard';
+import JobForm from './JobForm';
+import jobService from '../../services/job.service';
+import '../../styles/components/jobs.css';
+
+const JobList = () => {
+  const [jobs, setJobs] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    loadJobs();
+  }, []);
+
+  const loadJobs = async () => {
+    try {
+      const data = await jobService.getJobs();
+      setJobs(data);
+    } catch (error) {
+      console.error('Failed to load jobs:', error);
+    }
+  };
+
+  const handleJobCreate = async (jobData) => {
+    try {
+      await jobService.createJob(jobData);
+      setShowModal(false);
+      loadJobs();
+    } catch (error) {
+      console.error('Failed to create job:', error);
+    }
+  };
+
+  const handleStatusChange = async (jobId, newStatus) => {
+    try {
+      await jobService.updateJobStatus(jobId, newStatus);
+      loadJobs();
+    } catch (error) {
+      console.error('Failed to update job status:', error);
+    }
+  };
+
+  return (
+    <div className="job-list-container">
+      <button className="add-job-btn" onClick={() => setShowModal(true)}>
+        Add Job
+      </button>
+      
+      <div className="job-sections">
+        {['Applied', 'Interview', 'Offered', 'Rejected'].map(status => (
+          <div key={status} className="job-section">
+            <h2>{status}</h2>
+            {jobs
+              .filter(job => job.status === status)
+              .map(job => (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  onStatusChange={handleStatusChange}
+                />
+              ))}
+          </div>
+        ))}
+      </div>
+
+      {showModal && (
+        <JobForm
+          onSubmit={handleJobCreate}
+          onClose={() => setShowModal(false)}
+        />
+      )}
+    </div>
+  );
+};
+
+export default JobList;
+
+// frontend/src/services/api.js
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: process.env.REACT_APP_API_URL
+});
+
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default api;

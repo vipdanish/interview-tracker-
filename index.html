@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Application Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            background: #2c3e50;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .nav-buttons button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            background: #3498db;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .nav-buttons button:hover {
+            background: #2980b9;
+        }
+
+        .container {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .job-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .section {
+            background: #f5f6fa;
+            padding: 1rem;
+            border-radius: 8px;
+            min-height: 200px;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .job-card {
+            background: white;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 500px;
+            margin: 2rem auto;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        input, select, textarea {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .job-sections {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                margin: 1rem;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-buttons">
+            <button onclick="window.location.href='#'">Home</button>
+            <button onclick="window.location.href='#'">Login</button>
+            <button onclick="showModal()">Add Job</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="job-sections">
+            <div class="section" id="applied">
+                <h2>Applied</h2>
+            </div>
+            <div class="section" id="interview">
+                <h2>Interview</h2>
+            </div>
+            <div class="section" id="offered">
+                <h2>Got Offer</h2>
+            </div>
+            <div class="section" id="rejected">
+                <h2>Rejected</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="jobModal">
+        <div class="modal-content">
+            <span class="close" onclick="hideModal()">&times;</span>
+            <form id="jobForm" onsubmit="handleSubmit(event)">
+                <input type="text" placeholder="Company Name" required name="company">
+                <input type="text" placeholder="Position" required name="position">
+                <select name="status" required>
+                    <option value="applied">Applied</option>
+                    <option value="interview">Interview</option>
+                    <option value="offered">Got Offer</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+                <input type="date" placeholder="Application Date" required name="applicationDate">
+                <input type="text" placeholder="Next Round" name="nextRound">
+                <input type="date" placeholder="Next Round Date" name="nextRoundDate">
+                <textarea placeholder="Notes" name="notes"></textarea>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Job Application Tracker</p>
+    </footer>
+
+    <script>
+        // Store jobs in localStorage
+        let jobs = JSON.parse(localStorage.getItem('jobs')) || [];
+
+        function showModal() {
+            document.getElementById('jobModal').style.display = 'block';
+        }
+
+        function hideModal() {
+            document.getElementById('jobModal').style.display = 'none';
+            document.getElementById('jobForm').reset();
+        }
+
+        function handleSubmit(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const job = {
+                id: Date.now(),
+                company: formData.get('company'),
+                position: formData.get('position'),
+                status: formData.get('status'),
+                applicationDate: formData.get('applicationDate'),
+                nextRound: formData.get('nextRound'),
+                nextRoundDate: formData.get('nextRoundDate'),
+                notes: formData.get('notes')
+            };
+
+            jobs.push(job);
+            localStorage.setItem('jobs', JSON.stringify(jobs));
+            renderJobs();
+            hideModal();
+        }
+
+        function updateJob(id, newStatus) {
+            const jobIndex = jobs.findIndex(job => job.id === id);
+            if (jobIndex !== -1) {
+                jobs[jobIndex].status = newStatus;
+                localStorage.setItem('jobs', JSON.stringify(jobs));
+                renderJobs();
+            }
+        }
+
+        function deleteJob(id) {
+            jobs = jobs.filter(job => job.id !== id);
+            localStorage.setItem('jobs', JSON.stringify(jobs));
+            renderJobs();
+        }
+
+        function createJobCard(job) {
+            const card = document.createElement('div');
+            card.className = 'job-card';
+            card.draggable = true;
+            card.innerHTML = `
+                <h3>${job.company}</h3>
+                <p>Position: ${job.position}</p>
+                <p>Applied: ${job.applicationDate}</p>
+                ${job.nextRound ? `<p>Next Round: ${job.nextRound}</p>` : ''}
+                ${job.nextRoundDate ? `<p>Next Round Date: ${job.nextRoundDate}</p>` : ''}
+                <p>Notes: ${job.notes || 'N/A'}</p>
+                <select onchange="updateJob(${job.id}, this.value)">
+                    <option value="applied" ${job.status === 'applied' ? 'selected' : ''}>Applied</option>
+                    <option value="interview" ${job.status === 'interview' ? 'selected' : ''}>Interview</option>
+                    <option value="offered" ${job.status === 'offered' ? 'selected' : ''}>Got Offer</option>
+                    <option value="rejected" ${job.status === 'rejected' ? 'selected' : ''}>Rejected</option>
+                </select>
+                <button onclick="deleteJob(${job.id})">Delete</button>
+            `;
+
+            // Add drag and drop functionality
+            card.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', job.id);
+            });
+
+            return card;
+        }
+
+        function renderJobs() {
+            const sections = {
+                applied: document.getElementById('applied'),
+                interview: document.getElementById('interview'),
+                offered: document.getElementById('offered'),
+                rejected: document.getElementById('rejected')
+            };
+
+            // Clear all sections
+            Object.values(sections).forEach(section => {
+                while (section.children.length > 1) {
+                    section.removeChild(section.lastChild);
+                }
+            });
+
+            // Add jobs to appropriate sections
+            jobs.forEach(job => {
+                const card = createJobCard(job);
+                sections[job.status].appendChild(card);
+            });
+        }
+
+        // Add drop functionality to sections
+        document.querySelectorAll('.section').forEach(section => {
+            section.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            section.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const jobId = parseInt(e.dataTransfer.getData('text/plain'));
+                const newStatus = section.id;
+                updateJob(jobId, newStatus);
+            });
+        });
+
+        // Initial render
+        renderJobs();
+    </script>
+</body>
+</html>
